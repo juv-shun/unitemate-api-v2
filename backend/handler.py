@@ -35,8 +35,8 @@ def get_stats(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # S3から指定期間の集計データを取得・統合
         aggregated_data = get_aggregated_data_for_period(start_date, end_date)
 
-        # ポケモンマスターデータとの結合
-        result = combine_with_pokemon_master_data(aggregated_data, actual_start_str, actual_end_str)
+        # 純粋な集計データのレスポンス作成
+        result = create_simple_response(aggregated_data, actual_start_str, actual_end_str)
 
         return {
             'statusCode': 200,
@@ -188,32 +188,9 @@ def get_aggregated_data_for_period(start_date: datetime, end_date: datetime) -> 
     }
 
 
-def load_pokemon_master_data() -> Dict[str, Dict[str, str]]:
+def create_simple_response(aggregated_data: Dict[str, Any], start_date_str: str, end_date_str: str) -> Dict[str, Any]:
     """
-    ポケモンマスターデータを読み込む
-
-    Returns:
-        ポケモンIDをキーとしたマスターデータ辞書
-    """
-    file_path = '/opt/python/lib/python3.12/site-packages/data/pokemons.json'
-
-    # Lambda環境でない場合のフォールバック
-    if not os.path.exists(file_path):
-        file_path = 'data/pokemons.json'
-
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("ポケモンマスターデータファイルが見つかりません")
-
-    with open(file_path, 'r', encoding='utf-8') as f:
-        pokemon_list = json.load(f)
-
-    # IDをキーとした辞書に変換
-    return {pokemon['id']: pokemon for pokemon in pokemon_list}
-
-
-def combine_with_pokemon_master_data(aggregated_data: Dict[str, Any], start_date_str: str, end_date_str: str) -> Dict[str, Any]:
-    """
-    集計データをポケモンマスターデータと結合し、最終レスポンス形式を作成する
+    純粋な集計データのレスポンス形式を作成する
 
     Args:
         aggregated_data: 統合された集計データ
@@ -221,37 +198,14 @@ def combine_with_pokemon_master_data(aggregated_data: Dict[str, Any], start_date
         end_date_str: 終了日文字列
 
     Returns:
-        最終APIレスポンス
+        集計データのみのAPIレスポンス
     """
-    pokemon_master = load_pokemon_master_data()
-
-    result_per_pokemon = []
-    for pokemon_data in aggregated_data['result_per_pokemon']:
-        pokemon_id = pokemon_data['pokemon']
-        number_of_games = pokemon_data['number_of_games']
-        number_of_wins = pokemon_data['number_of_wins']
-
-        # マスターデータから情報を取得
-        master_data = pokemon_master.get(pokemon_id)
-        if not master_data:
-            # マスターデータにないポケモンはスキップ
-            print(f"Pokemon {pokemon_id} not found in master data")
-            continue
-
-        # 勝率を計算
-        win_rate = number_of_wins / number_of_games if number_of_games > 0 else 0.0
-
-        result_per_pokemon.append({
-            'pokemon': master_data['name'],
-            'type': master_data['type'],
-            'icon_url': master_data['imageUrl'],
-            'number_of_games': number_of_games,
-            'number_of_wins': number_of_wins,
-            'win_rate': round(win_rate, 3)
-        })
-
     # 試合数の多い順にソート
-    result_per_pokemon.sort(key=lambda x: x['number_of_games'], reverse=True)
+    result_per_pokemon = sorted(
+        aggregated_data['result_per_pokemon'],
+        key=lambda x: x['number_of_games'],
+        reverse=True
+    )
 
     return {
         'number_of_games': aggregated_data['number_of_games'],

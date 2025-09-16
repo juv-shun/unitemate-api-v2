@@ -50,7 +50,6 @@ package:
     - "!tmp/**"
     - "!tests/**"
     - "!.serverless/**"
-    - "data/**"
 
 functions:
   getStats:
