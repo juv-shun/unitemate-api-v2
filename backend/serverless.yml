@@ -53,7 +53,7 @@ package:
 
 functions:
   getStats:
-    handler: handler.get_stats
+    handler: stats_api.get_stats
     events:
       - httpApi:
           path: /stats
