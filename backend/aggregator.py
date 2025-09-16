@@ -5,6 +5,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from typing import Dict, Any
+from zoneinfo import ZoneInfo
 
 import boto3
 import pandas as pd
@@ -22,8 +23,10 @@ def aggregate_daily(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         処理結果
     """
     try:
-        # 前日の日付を取得
-        yesterday = datetime.now() - timedelta(days=1)
+        # 日本時間で前日の日付を取得
+        jst = ZoneInfo("Asia/Tokyo")
+        now_jst = datetime.now(jst)
+        yesterday = now_jst - timedelta(days=1)
         aggregated_date = yesterday.strftime('%Y-%m-%d')
 
         print(f"集計開始: {aggregated_date}")
