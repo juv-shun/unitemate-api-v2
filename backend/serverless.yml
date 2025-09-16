@@ -46,7 +46,7 @@ functions:
           method: get
 
   aggregateDaily:
-    handler: handler.aggregate_daily
+    handler: aggregator.aggregate_daily
     timeout: 900
     events:
       - schedule:
