@@ -1,0 +1,71 @@
+service: unitemate-api-v2
+
+frameworkVersion: "4"
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  stage: ${opt:stage, 'dev'}
+  runtime: python3.12
+  stackName: ${sls:stage}-${self:service}-stack
+  logRetentionInDays: 7
+  deploymentBucket:
+    name: serverless-framework-deployments-ap-northeast-1-a4fafecb-798e
+    maxPreviousDeploymentArtifacts: 3
+  endpointType: REGIONAL
+  environment:
+    S3_BUCKET: unitemate-api-v2-aggregated-results
+    DYNAMODB_TABLE: unitemate-v2-records-prod
+  iam:
+    role:
+      name: ${self:service}-role-${sls:stage}
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Scan
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:BatchGetItem
+          Resource:
+            - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/unitemate-v2-records-prod"
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:ListBucket
+          Resource:
+            - !GetAtt AggregatedResultsBucket.Arn
+            - !Sub "${AggregatedResultsBucket}/*"
+
+functions:
+  getStats:
+    handler: handler.get_stats
+    events:
+      - httpApi:
+          path: /stats
+          method: get
+
+plugins:
+  - serverless-prune-plugin
+  - serverless-python-requirements
+
+custom:
+  prune:
+    automatic: true
+    number: 3
+  pythonRequirements:
+    dockerizePip: non-linux
+
+resources:
+  Resources:
+    AggregatedResultsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: unitemate-api-v2-aggregated-results
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "serverless-prune-plugin": "^2.1.0",
+    "serverless-python-requirements": "^6.1.2"
+  }
+}
