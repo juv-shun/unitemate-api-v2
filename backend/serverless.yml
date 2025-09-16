@@ -14,7 +14,7 @@ provider:
     maxPreviousDeploymentArtifacts: 3
   endpointType: REGIONAL
   environment:
-    S3_BUCKET: unitemate-api-v2-aggregated-results
+    S3_BUCKET: !Ref AggregatedResultsBucket
     DYNAMODB_TABLE: unitemate-v2-records-prod
   iam:
     role:
@@ -73,7 +73,7 @@ resources:
     AggregatedResultsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: unitemate-api-v2-aggregated-results
+        BucketName: unitemate-api-v2-aggregated-results-${sls:stage}
         VersioningConfiguration:
           Status: Enabled
         PublicAccessBlockConfiguration:
