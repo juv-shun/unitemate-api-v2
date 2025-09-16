@@ -35,7 +35,7 @@ provider:
             - s3:ListBucket
           Resource:
             - !GetAtt AggregatedResultsBucket.Arn
-            - !Sub "${AggregatedResultsBucket}/*"
+            - !Sub "${AggregatedResultsBucket.Arn}/*"
 
 functions:
   getStats:
