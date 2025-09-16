@@ -23,13 +23,26 @@ def aggregate_daily(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         処理結果
     """
     try:
-        # 日本時間で前日の日付を取得
+        # 環境変数TARGET_DATEで日付を指定、未設定の場合は日本時間の前日
+        target_date_str = os.environ.get('TARGET_DATE')
         jst = ZoneInfo("Asia/Tokyo")
-        now_jst = datetime.now(jst)
-        yesterday = now_jst - timedelta(days=1)
-        aggregated_date = yesterday.strftime('%Y-%m-%d')
 
-        print(f"集計開始: {aggregated_date}")
+        if target_date_str:
+            try:
+                # 環境変数から日付を取得
+                target_date = datetime.strptime(target_date_str, '%Y-%m-%d').replace(tzinfo=jst)
+                aggregated_date = target_date_str
+                date_source = "環境変数TARGET_DATE"
+            except ValueError:
+                raise ValueError(f"TARGET_DATE環境変数の形式が不正です。YYYY-MM-DD形式で指定してください: {target_date_str}")
+        else:
+            # 日本時間で前日の日付を取得
+            now_jst = datetime.now(jst)
+            target_date = now_jst - timedelta(days=1)
+            aggregated_date = target_date.strftime('%Y-%m-%d')
+            date_source = "自動計算（前日）"
+
+        print(f"集計開始: {aggregated_date} ({date_source})")
 
         # DynamoDBクライアント初期化
         dynamodb = boto3.resource('dynamodb')
@@ -39,21 +52,21 @@ def aggregate_daily(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         s3 = boto3.client('s3')
         bucket_name = os.environ['S3_BUCKET']
 
-        # 前日の開始・終了タイムスタンプを計算
-        yesterday_start = int(yesterday.replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
-        yesterday_end = int((yesterday + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
+        # 対象日の開始・終了タイムスタンプを計算
+        target_start = int(target_date.replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
+        target_end = int((target_date + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
 
-        print(f"対象期間: {yesterday_start} - {yesterday_end}")
+        print(f"対象期間: {target_start} - {target_end}")
 
-        # DynamoDBから前日のデータを取得
+        # DynamoDBから対象日のデータを取得
         response = table.scan(
             FilterExpression='#started_date >= :start_date AND #started_date < :end_date',
             ExpressionAttributeNames={
                 '#started_date': 'started_date'
             },
             ExpressionAttributeValues={
-                ':start_date': yesterday_start,
-                ':end_date': yesterday_end
+                ':start_date': target_start,
+                ':end_date': target_end
             }
         )
 
@@ -67,8 +80,8 @@ def aggregate_daily(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     '#started_date': 'started_date'
                 },
                 ExpressionAttributeValues={
-                    ':start_date': yesterday_start,
-                    ':end_date': yesterday_end
+                    ':start_date': target_start,
+                    ':end_date': target_end
                 },
                 ExclusiveStartKey=response['LastEvaluatedKey']
             )
