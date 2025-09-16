@@ -48,6 +48,7 @@ functions:
 plugins:
   - serverless-prune-plugin
   - serverless-python-requirements
+  - serverless-offline
 
 custom:
   prune:
