@@ -14,7 +14,7 @@ provider:
     maxPreviousDeploymentArtifacts: 3
   endpointType: REGIONAL
   environment:
-    S3_BUCKET: !Ref AggregatedResultsBucket
+    S3_BUCKET: unitemate-api-v2-aggregated-results-${sls:stage}
     DYNAMODB_TABLE: unitemate-v2-records-prod
   iam:
     role:
@@ -50,6 +50,7 @@ package:
     - "!tmp/**"
     - "!tests/**"
     - "!.serverless/**"
+    - "data/**"
 
 functions:
   getStats:
