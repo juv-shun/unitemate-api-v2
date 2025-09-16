@@ -74,8 +74,6 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: unitemate-api-v2-aggregated-results-${sls:stage}
-        VersioningConfiguration:
-          Status: Enabled
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
           BlockPublicPolicy: true
