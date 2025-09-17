@@ -17,6 +17,7 @@ provider:
     cors:
       allowedOrigins:
         - "https://unitemate-api.shink-poke.com"
+        - "https://unitemate-api-v2.netlify.app"
       allowedHeaders:
         - Content-Type
       allowedMethods:
