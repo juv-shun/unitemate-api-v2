@@ -13,6 +13,10 @@ export const calculateWinRate = (wins: number, totalGames: number): number => {
 export const enhancePokemonStats = (stats: PokemonStats[]): EnhancedPokemonStats[] => {
   return stats
     .map((stat) => {
+      if (stat.pokemon === 'unknown' || stat.pokemon === '') {
+        return null;
+      }
+
       const pokemonInfo = pokemonMap.get(stat.pokemon);
       if (!pokemonInfo) {
         console.warn(`Pokemon not found: ${stat.pokemon}`);
