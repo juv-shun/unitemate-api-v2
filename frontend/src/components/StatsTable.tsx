@@ -98,10 +98,10 @@ export const StatsTable: React.FC<StatsTableProps> = ({ stats, totalGames }) => 
 const getTypeColor = (type: string): string => {
   const typeColors: Record<string, string> = {
     'アタック型': 'bg-red-100 text-red-800',
-    'バランス型': 'bg-yellow-100 text-yellow-800',
-    'スピード型': 'bg-green-100 text-green-800',
-    'ディフェンス型': 'bg-blue-100 text-blue-800',
-    'サポート型': 'bg-purple-100 text-purple-800',
+    'バランス型': 'bg-purple-100 text-purple-800',
+    'スピード型': 'bg-blue-100 text-blue-800',
+    'ディフェンス型': 'bg-green-100 text-green-800',
+    'サポート型': 'bg-yellow-100 text-yellow-800',
   };
   return typeColors[type] || 'bg-gray-100 text-gray-800';
 };

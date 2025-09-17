@@ -46,10 +46,10 @@ const getSelectedTypeStyle = (type: PokemonType): string => {
   const typeStyles: Record<PokemonType, string> = {
     'すべて': 'bg-gray-600 text-white',
     'アタック型': 'bg-red-600 text-white',
-    'バランス型': 'bg-yellow-600 text-white',
-    'スピード型': 'bg-green-600 text-white',
-    'ディフェンス型': 'bg-blue-600 text-white',
-    'サポート型': 'bg-purple-600 text-white',
+    'バランス型': 'bg-purple-600 text-white',
+    'スピード型': 'bg-blue-600 text-white',
+    'ディフェンス型': 'bg-green-600 text-white',
+    'サポート型': 'bg-yellow-600 text-white',
   };
   return typeStyles[type];
 };
