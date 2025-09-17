@@ -1,70 +1,125 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
-
-interface ApiResponse {
-  message: string;
-  event: any;
-}
+import { StatsApiResponse, DateRange, PokemonType, EnhancedPokemonStats } from './types';
+import { DateRangeSelector } from './components/DateRangeSelector';
+import { TypeFilter } from './components/TypeFilter';
+import { StatsTable } from './components/StatsTable';
+import { getDefaultDateRange, enhancePokemonStats, filterByType } from './utils/pokemon';
 
 function App() {
-  const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [statsData, setStatsData] = useState<StatsApiResponse | null>(null);
+  const [enhancedStats, setEnhancedStats] = useState<EnhancedPokemonStats[]>([]);
+  const [filteredStats, setFilteredStats] = useState<EnhancedPokemonStats[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange());
+  const [selectedType, setSelectedType] = useState<PokemonType>('すべて');
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const apiUrl = process.env.REACT_APP_API_URL;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError('');
+  const fetchStats = async (range: DateRange) => {
+    try {
+      setLoading(true);
+      setError('');
 
-        const response = await fetch(`${apiUrl}/stats`);
+      const params = new URLSearchParams({
+        start_date: range.start_date,
+        end_date: range.end_date,
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const response = await fetch(`${apiUrl}/stats?${params}`);
 
-        const data: ApiResponse = await response.json();
-        setMessage(data.message);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
-    fetchData();
-  }, [apiUrl]);
+      const data: StatsApiResponse = await response.json();
+      setStatsData(data);
+
+      const enhanced = enhancePokemonStats(data.result_per_pokemon);
+      setEnhancedStats(enhanced);
+      setFilteredStats(filterByType(enhanced, selectedType));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats(dateRange);
+  }, []);
+
+  useEffect(() => {
+    setFilteredStats(filterByType(enhancedStats, selectedType));
+  }, [enhancedStats, selectedType]);
+
+  const handleDateRangeApply = () => {
+    fetchStats(dateRange);
+  };
+
+  const handleTypeChange = (type: PokemonType) => {
+    setSelectedType(type);
+  };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Unitemate API v2</h1>
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 py-8">
+        <header className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            ポケモンユナイト統計ダッシュボード
+          </h1>
+          <p className="text-gray-600">
+            ポケモンの対戦統計と勝率を確認できます
+          </p>
+        </header>
 
-        {loading && <p>Loading...</p>}
+        <DateRangeSelector
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onApply={handleDateRangeApply}
+        />
+
+        <TypeFilter
+          selectedType={selectedType}
+          onTypeChange={handleTypeChange}
+        />
+
+        {loading && (
+          <div className="bg-white p-8 rounded-lg shadow-md text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">データを読み込んでいます...</p>
+          </div>
+        )}
 
         {error && (
-          <div style={{ color: 'red', margin: '20px 0' }}>
-            <p>Error: {error}</p>
-            <p>API URL: {apiUrl}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">エラーが発生しました</h3>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                <p className="mt-1 text-xs text-red-600">API URL: {apiUrl}</p>
+              </div>
+            </div>
           </div>
         )}
 
-        {!loading && !error && (
-          <div style={{ margin: '20px 0' }}>
-            <h2>API Response:</h2>
-            <p style={{ fontSize: '18px', color: '#61dafb' }}>{message}</p>
-          </div>
+        {!loading && !error && statsData && (
+          <StatsTable
+            stats={filteredStats}
+            totalGames={statsData.number_of_games}
+          />
         )}
 
-        <p style={{ fontSize: '14px', opacity: 0.7 }}>
-          Environment: {process.env.NODE_ENV}
-        </p>
-        <p style={{ fontSize: '14px', opacity: 0.7 }}>
-          API URL: {apiUrl}
-        </p>
-      </header>
+        <footer className="mt-12 text-center text-sm text-gray-500">
+          <p>Environment: {process.env.NODE_ENV}</p>
+          <p>集計期間: {statsData?.start_date} 〜 {statsData?.end_date}</p>
+        </footer>
+      </div>
     </div>
   );
 }
