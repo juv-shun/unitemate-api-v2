@@ -44,11 +44,8 @@ export const filterByType = (
 export const validateDateRange = (startDate: string, endDate: string): boolean => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const today = new Date();
-  const eightDaysAgo = new Date(today);
-  eightDaysAgo.setDate(today.getDate() - 8);
-  const oneDayAgo = new Date(today);
-  oneDayAgo.setDate(today.getDate() - 1);
+  const eightDaysAgo = getJSTDate(-8);
+  const oneDayAgo = getJSTDate(-1);
 
   return (
     start >= eightDaysAgo &&
@@ -59,16 +56,21 @@ export const validateDateRange = (startDate: string, endDate: string): boolean =
   );
 };
 
+export const getJSTDate = (daysOffset: number = 0): Date => {
+  const now = new Date();
+  const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  jstDate.setUTCDate(jstDate.getUTCDate() + daysOffset);
+  jstDate.setUTCHours(0, 0, 0, 0);
+  return jstDate;
+};
+
 export const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
 export const getDefaultDateRange = () => {
-  const today = new Date();
-  const endDate = new Date(today);
-  endDate.setDate(today.getDate() - 1);
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 7);
+  const endDate = getJSTDate(-1);
+  const startDate = getJSTDate(-7);
 
   return {
     start_date: formatDate(startDate),

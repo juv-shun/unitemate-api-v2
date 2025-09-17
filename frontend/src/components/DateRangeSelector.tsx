@@ -1,6 +1,6 @@
 import React from 'react';
 import { DateRange } from '../types';
-import { validateDateRange, formatDate } from '../utils/pokemon';
+import { validateDateRange, formatDate, getJSTDate } from '../utils/pokemon';
 
 interface DateRangeSelectorProps {
   dateRange: DateRange;
@@ -30,16 +30,12 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   const isValid = validateDateRange(dateRange.start_date, dateRange.end_date);
 
   const getMinDate = () => {
-    const today = new Date();
-    const eightDaysAgo = new Date(today);
-    eightDaysAgo.setDate(today.getDate() - 8);
+    const eightDaysAgo = getJSTDate(-8);
     return formatDate(eightDaysAgo);
   };
 
   const getMaxDate = () => {
-    const today = new Date();
-    const oneDayAgo = new Date(today);
-    oneDayAgo.setDate(today.getDate() - 1);
+    const oneDayAgo = getJSTDate(-1);
     return formatDate(oneDayAgo);
   };
 
