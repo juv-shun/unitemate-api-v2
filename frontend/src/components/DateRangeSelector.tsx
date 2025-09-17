@@ -1,6 +1,6 @@
 import React from 'react';
 import { DateRange } from '../types';
-import { validateDateRange, getDefaultDateRange, formatDate } from '../utils/pokemon';
+import { validateDateRange, formatDate } from '../utils/pokemon';
 
 interface DateRangeSelectorProps {
   dateRange: DateRange;

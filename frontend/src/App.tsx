@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DateRangeSelector } from "./components/DateRangeSelector";
 import { StatsTable } from "./components/StatsTable";
 import { TypeFilter } from "./components/TypeFilter";
@@ -29,7 +29,7 @@ function App() {
 
   const apiUrl = process.env.REACT_APP_API_URL;
 
-  const fetchStats = async (range: DateRange) => {
+  const fetchStats = useCallback(async (range: DateRange) => {
     try {
       setLoading(true);
       setError("");
@@ -56,11 +56,11 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiUrl, selectedType]);
 
   useEffect(() => {
     fetchStats(dateRange);
-  }, []);
+  }, [dateRange, fetchStats]);
 
   useEffect(() => {
     setFilteredStats(filterByType(enhancedStats, selectedType));
