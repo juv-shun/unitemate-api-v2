@@ -13,6 +13,16 @@ provider:
     name: serverless-framework-deployments-ap-northeast-1-a4fafecb-798e
     maxPreviousDeploymentArtifacts: 3
   endpointType: REGIONAL
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "https://unitemate-api.shink-poke.com"
+      allowedHeaders:
+        - Content-Type
+      allowedMethods:
+        - GET
+        - OPTIONS
+      allowCredentials: false
   environment:
     S3_BUCKET: unitemate-api-v2-aggregated-results-${sls:stage}
     DYNAMODB_TABLE: unitemate-v2-records-prod
