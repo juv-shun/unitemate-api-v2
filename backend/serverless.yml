@@ -109,3 +109,8 @@ resources:
           BlockPublicPolicy: true
           IgnorePublicAcls: true
           RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteAfter30Days
+              Status: Enabled
+              ExpirationInDays: 30
