@@ -48,7 +48,7 @@ function App() {
       const data: StatsApiResponse = await response.json();
       setStatsData(data);
 
-      const enhanced = enhancePokemonStats(data.result_per_pokemon);
+      const enhanced = await enhancePokemonStats(data.result_per_pokemon);
       setEnhancedStats(enhanced);
       setFilteredStats(filterByType(enhanced, selectedType));
     } catch (err) {

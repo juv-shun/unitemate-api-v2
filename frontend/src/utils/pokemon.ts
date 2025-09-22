@@ -1,23 +1,35 @@
 import { Pokemon, PokemonStats, EnhancedPokemonStats, PokemonType } from '../types';
-import pokemonData from '../data/pokemons.json';
+import { fetchPokemonData } from '../services/pokemonService';
 
-export const pokemonMap = new Map<string, Pokemon>(
-  pokemonData.map((pokemon: Pokemon) => [pokemon.id, pokemon])
-);
+let pokemonMap: Map<string, Pokemon> | null = null;
+
+export const getPokemonMap = async (): Promise<Map<string, Pokemon>> => {
+  if (pokemonMap) {
+    return pokemonMap;
+  }
+
+  const pokemonData = await fetchPokemonData();
+  pokemonMap = new Map<string, Pokemon>(
+    pokemonData.map((pokemon: Pokemon) => [pokemon.id, pokemon])
+  );
+  return pokemonMap;
+};
 
 export const calculateWinRate = (wins: number, totalGames: number): number => {
   if (totalGames === 0) return 0;
   return Math.round((wins / totalGames) * 100 * 10) / 10;
 };
 
-export const enhancePokemonStats = (stats: PokemonStats[]): EnhancedPokemonStats[] => {
+export const enhancePokemonStats = async (stats: PokemonStats[]): Promise<EnhancedPokemonStats[]> => {
+  const currentPokemonMap = await getPokemonMap();
+
   return stats
     .map((stat) => {
       if (stat.pokemon === 'unknown' || stat.pokemon === '') {
         return null;
       }
 
-      const pokemonInfo = pokemonMap.get(stat.pokemon);
+      const pokemonInfo = currentPokemonMap.get(stat.pokemon);
       if (!pokemonInfo) {
         console.warn(`Pokemon not found: ${stat.pokemon}`);
         return null;
